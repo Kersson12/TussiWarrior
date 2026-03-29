@@ -3,6 +3,7 @@
   "nodes": [
     {
       "parameters": {},
+      "id": "trigger-01",
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
@@ -13,39 +14,74 @@
     },
     {
       "parameters": {
-        "url": "https://api.apify.com/v2/acts/trending_scraper/runs",
-        "authentication": "headerAuth",
+        "url": "https://api.apify.com/v2/acts/clockworks~tiktok-scraper/runs?waitForFinish=120&token=REPLACE_WITH_APIFY_TOKEN",
         "method": "POST",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
-              "name": "Authorization",
-              "value": "Bearer APIFY_TOKEN_HERE"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
         },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawBody": "{\n  \"hashtags\": [\n    \"tiktokmademebuyit\"\n  ],\n  \"resultsPerPage\": 5,\n  \"shouldDownloadVideos\": false\n}",
         "options": {}
       },
-      "name": "Llamada a Apify",
+      "name": "Scrapear TikTok (Apify)",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
+      "typeVersion": 4.1,
       "position": [
-        450,
+        480,
         300
       ]
     },
     {
       "parameters": {
-        "setAllData": false,
-        "options": {},
-        "keepOnlySet": true
+        "url": "=https://api.apify.com/v2/datasets/{{$json.data.defaultDatasetId}}/items?format=json&clean=1",
+        "options": {}
       },
-      "name": "Filtrar JSON Limpio",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 2,
+      "name": "Obtener Resultados JSON",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
       "position": [
-        650,
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "limit",
+        "maxItems": 1
+      },
+      "name": "Extraer Solo el Mejor",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 3,
+      "position": [
+        920,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "respuesta_texto",
+              "value": "=🔥 *TOP VIRAL ENCONTRADO* 🔥\n\n📺 *Vistas:* {{ $json.playCount || 'No disponible' }}\n❤️ *Likes:* {{ $json.diggCount || 'No disponible' }}\n🔗 *Link:* {{ $json.webVideoUrl || 'No disponible' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Formatear Respuesta",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1140,
         300
       ]
     }
@@ -55,18 +91,40 @@
       "main": [
         [
           {
-            "node": "Llamada a Apify",
+            "node": "Scrapear TikTok (Apify)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Llamada a Apify": {
+    "Scrapear TikTok (Apify)": {
       "main": [
         [
           {
-            "node": "Filtrar JSON Limpio",
+            "node": "Obtener Resultados JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Resultados JSON": {
+      "main": [
+        [
+          {
+            "node": "Extraer Solo el Mejor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer Solo el Mejor": {
+      "main": [
+        [
+          {
+            "node": "Formatear Respuesta",
             "type": "main",
             "index": 0
           }

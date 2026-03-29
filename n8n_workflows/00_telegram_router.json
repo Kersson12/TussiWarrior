@@ -8,6 +8,7 @@
         ],
         "additionalFields": {}
       },
+      "id": "trigger-00",
       "name": "Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1,
@@ -43,7 +44,7 @@
     },
     {
       "parameters": {
-        "workflowId": "MODULO_01_HUNTER_ID",
+        "workflowId": "lWW470CURDI9x59r",
         "mode": "wait"
       },
       "name": "Execute Trend Hunter",
@@ -56,7 +57,7 @@
     },
     {
       "parameters": {
-        "workflowId": "MODULO_02_CREATIVE_ID",
+        "workflowId": "o8SzwLp65EJLHbTk",
         "mode": "wait"
       },
       "name": "Execute Creative Studio",
@@ -65,6 +66,22 @@
       "position": [
         700,
         400
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.respuesta_texto }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "name": "Responder a Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        300
       ]
     }
   ],
@@ -92,6 +109,28 @@
         [
           {
             "node": "Execute Creative Studio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Trend Hunter": {
+      "main": [
+        [
+          {
+            "node": "Responder a Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Creative Studio": {
+      "main": [
+        [
+          {
+            "node": "Responder a Telegram",
             "type": "main",
             "index": 0
           }

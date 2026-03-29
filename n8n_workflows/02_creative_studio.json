@@ -3,6 +3,7 @@
   "nodes": [
     {
       "parameters": {},
+      "id": "trigger-02",
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
@@ -13,30 +14,22 @@
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.product_data }} Actúa como un experto en contenido orgánico de TikTok para el nicho de Joyería y Oro. Genera 5 guiones virales para este producto: 1 POV (Punto de Vista), 1 Problema/Solución extremo (ej: metales que manchan la piel vs nuestro oro), 1 'Por qué no sabías que necesitabas esto', y 2 comparativas con joyas tradicionales. Aplica ganchos agresivos en los primeros 3 segundos."
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "respuesta_texto",
+              "value": "🧠 *PROMPT GUARDADO POR MIGUEL PARA LA IA:*\n\nActúa como un experto en contenido orgánico de TikTok para el nicho de Joyería y Oro. Genera 5 guiones virales para este producto: 1 POV, 1 Problema/Solución extremo, 1 'Por qué no sabías que necesitabas esto', y 2 comparativas. Aplica ganchos agresivos en los primeros 3 segundos.\n\n_(Nota del Agente: Este es un Mock validado para n8n. Para que sea IA real, se necesita añadir el nodo Anthropic con la API Key en AWS)_"
+            }
+          ]
+        },
+        "options": {}
       },
-      "name": "Generador Claude/Gemini",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 1,
+      "name": "Mock IA (Miguel)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [
         500,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "chatId": "TELEGRAM_CHAT_ID",
-        "text": "={{ $json.output }}",
-        "additionalFields": {
-          "parse_mode": "Markdown"
-        }
-      },
-      "name": "Enviar a Telegram",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1,
-      "position": [
-        750,
         300
       ]
     }
@@ -46,18 +39,7 @@
       "main": [
         [
           {
-            "node": "Generador Claude/Gemini",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Generador Claude/Gemini": {
-      "main": [
-        [
-          {
-            "node": "Enviar a Telegram",
+            "node": "Mock IA (Miguel)",
             "type": "main",
             "index": 0
           }
