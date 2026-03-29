@@ -1,57 +1,40 @@
-# 📦 Dropshipping Orgánico Potenciado con Agentes de IA
+# 📦 Dropshipping Orgánico Potenciado con Agentes de IA y n8n + Telegram
 
-Este documento describe cómo vuestro equipo puede dominar el modelo orgánico (TikTok, Reels, Shorts) delegando las tareas repetitivas y de análisis a un sistema de agentes coordinado.
-
----
-
-## 🏗️ La "Máquina de Dropshipping" Autónoma
-
-### 1. El Agente de Product Research: "Trend Hunter"
-A diferencia de las herramientas pagas (como Minea o AdSpy), este agente busca lo que **va a ser viral**, no lo que ya lo es.
-*   **Función:** Monitorea hashtags como `#TikTokMadeMeBuyIt`, `#AliExpressFinds` y `#AmazonHome`.
-*   **Métrica de Éxito:** Detecta videos con un ratio de "Guardados y Compartidos" superior a la media de la cuenta. 
-*   **Resultado:** Cada mañana, vuestro equipo recibe un JSON con 3 productos, su link de AliExpress y el video que está empezando a traccionar.
-
-### 2. El Agente Creativo: "Scripting & Viral Hooks"
-La clave del orgánico es el **Hook (Gancho)** de los primeros 3 segundos.
-*   **Función:** Analiza la transcripción de los videos virales actuales y detecta patrones psicológicos (ej: *Pánico, Sorpresa, Ahorro de Tiempo*).
-*   **Resultado:** Genera 5 guiones diferentes para el mismo producto:
-    - 1 x POV (Punto de Vista).
-    - 1 x Problema/Solución extremo.
-    - 1 x "Por qué no sabías que necesitabas esto".
-    - 2 x Comparativa con producto tradicional.
-
-### 3. El Agente de Ventas: "Auto-Closer & DM Bot"
-Cuando un video se vuelve viral, el volumen de comentarios es imposible de gestionar manualmente.
-*   **Función:** Escanea los comentarios de vuestra cuenta oficial.
-*   **Lógica:** 
-    - Si alguien pregunta "¿Dónde lo consigo?", el agente responde públicamente con un "Check your DMs! 🚀" y le envía el link de la tienda por mensaje directo.
-    - Si alguien tiene una duda técnica (ej: "¿Es a batería?"), el agente la resuelve consultando la descripción del producto en vuestra base de datos.
-*   **Resultado:** Transformación de tráfico orgánico en ventas reales sin que tu equipo pierda 5 horas respondiendo comentarios.
-
-### 4. El Agente de Crecimiento: "UGC Scout"
-El contenido generado por otros usuarios (User Generated Content) es lo que más vende.
-*   **Función:** Busca perfiles de creadores con 1k - 5k seguidores en vuestro nicho.
-*   **Acción:** Redacta y envía una propuesta personalizada vía DM o Email: *"Me encanta tu estética, queremos enviarte [Producto X] gratis para que lo pruebes"*.
-*   **Resultado:** Un flujo constante de videos de terceros para vuestras redes, aumentando la prueba social (Social Proof).
+Este documento describe cómo vuestro equipo puede dominar el modelo orgánico (TikTok, Reels, Shorts) delegando las tareas repetitivas y de análisis a un **Centro de Comando centralizado en Telegram** impulsado por **n8n**.
 
 ---
 
-## 🛠️ Stack Tecnológico Recomendado
-1.  **Orquestador:** CrewAI o n8n (para conectar redes sociales con IA).
-2.  **Modelos:** GPT-4o-mini (rápido y barato para respuestas de comentarios) y Claude 3.5 Sonnet (para guiones creativos).
-3.  **Búsqueda:** Apify (para scrapear TikTok e Instagram sin que te bloqueen la cuenta).
-4.  **Backend:** Firebase o Supabase para guardar el historial de productos y leads.
+## 🏗️ La "Máquina de Dropshipping" Autónoma (Arquitectura)
+
+Todo el flujo se gestionará a través de **n8n** (o similar), con un **Bot de Telegram** como panel de control interactivo para Diker y Miguel.
+
+### 1. El Agente de Product Research: "Trend Hunter" (Vía n8n)
+A diferencia de las herramientas pagas manuales, este flujo de n8n busca lo que **va a ser viral**.
+*   **Función:** n8n dispara un scraping diario (usando Apify) sobre hashtags como `#TikTokMadeMeBuyIt`, `#AliExpressFinds` y tendencias globales.
+*   **Alerta a Telegram:** El flujo envía al grupo privado un mensaje estructurado con: Enlace del video, ratio de "Guardados y Compartidos" y el link base de AliExpress.
+*   **Aprobación (Botón):** Diker o Miguel solo tienen que pulsar un botón "✅ **Aprobar Producto**" en Telegram para desatar el siguiente paso.
+
+### 2. El Agente Creativo: "Scripting & Viral Hooks" (Trigger por Telegram)
+*   **Función:** Al pulsar "Aprobar", n8n envía los datos del producto a la IA (Claude/Gemini) para que redacte guiones optimizados para retención de audiencia.
+*   **Resultado a Telegram:** n8n devuelve al grupo los 5 guiones diferentes (POV, Problema/Solución, etc.) para que el equipo los revise.
+
+### 3. El Agente de E-commerce: Inyección en Tienda (La Acción Final)
+*   **Función:** Una vez seleccionáis el guion y las fotos, n8n crea automáticamente el borrador del producto en Shopify o el CMS que uséis (mediante API).
+
+### 4. El Agente de Ventas y Crecimiento: "Auto-Closer & UGC"
+*   **Función:** Un flujo adicional de n8n escucha las notificaciones de nuevos comentarios virales en vuestras redes. Envía mensajes directos automáticos a los interesados y coordina las campañas con nano-influencers (UGC).
 
 ---
 
-## 🚀 ¿Cómo diferenciarse del resto?
-- **Personalización Masiva:** Mientras otros usan bots genéricos, tus agentes escriben mensajes contextuales.
-- **Multitransmisión:** Tus agentes pueden gestionar 10 cuentas de nicho al mismo tiempo (ej: Belleza en ES, Hogar en US, Gadgets en BR).
-- **Iteración Rápida:** Si un estilo de video deja de funcionar, el agente detecta la caída de retención y propone un cambio de edición al instante.
+## 🛠️ Stack Tecnológico Modificado
+1.  **Centro de Mando:** **Telegram**. Todas las aprobaciones y recepciones de datos suceden en un grupo privado.
+2.  **Orquestador Total:** **n8n**. Conecta las APIs, la IA y Telegram.
+3.  **Modelos de IA:** GPT-4o-mini / Claude 3.5 Sonnet dentro de n8n.
+4.  **Búsqueda Global:** **Apify**. Scraping potente y estructurado, controlado por n8n.
 
 ---
 
-> [!IMPORTANT]
-> **Próximo Paso Sugerido:**
-> Definir el **Nicho**. Una vez elegido, podemos empezar a programar el primer agente (Trend Hunter) para que vuestro equipo empiece a recibir datos reales mañana mismo.
+## 🚀 ¿Por qué Telegram + n8n?
+- **Fricción Cero:** Podéis aprobar productos ganadores desde el móvil sin abrir decenas de pestañas.
+- **Transparencia:** Miguel y tú veis todas las acciones del sistema en tiempo real en un solo chat.
+- **Escalabilidad:** Si un producto explota de verdad, podéis cambiar un botón en Telegram que active una nueva tienda en minutos mediante n8n.
