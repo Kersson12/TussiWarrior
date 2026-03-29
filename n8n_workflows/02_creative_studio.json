@@ -14,7 +14,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $json.product_data }} Genera 3 ganchos virales para TikTok basados en este producto."
+        "text": "={{ $json.product_data }} Actúa como un experto en contenido orgánico de TikTok para el nicho de Joyería y Oro. Genera 5 guiones virales para este producto: 1 POV (Punto de Vista), 1 Problema/Solución extremo (ej: metales que manchan la piel vs nuestro oro), 1 'Por qué no sabías que necesitabas esto', y 2 comparativas con joyas tradicionales. Aplica ganchos agresivos en los primeros 3 segundos."
       },
       "name": "Generador Claude/Gemini",
       "type": "@n8n/n8n-nodes-langchain.agent",

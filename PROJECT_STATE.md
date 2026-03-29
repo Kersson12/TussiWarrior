@@ -42,3 +42,4 @@ El proyecto adopta **n8n** como motor de orquestación y **Telegram** como inter
 - [2026-03-29] **Sync Agent:** Configuración de GitHub + Apify MCP exitosa. 
 - [2026-03-29] **Global Sync:** Se implementa la regla de **Auto-Push** obligatoria.
 - [2026-03-29] **Pivot de Arquitectura:** Integración de **n8n + Telegram** como "Centro de Comando" de todas las automatizaciones.
+- [2026-03-29] **Miguel-Bot:** Workflow de Creative Studio actualizado e inyectado con el contexto de Nicho Oro (Joyería). Fase 2 lista.
