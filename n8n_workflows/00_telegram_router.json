@@ -1,0 +1,105 @@
+{
+  "name": "00_El_Cerebro_TelegramRouter",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{$json.message.text}}",
+        "rules": {
+          "rules": [
+            {
+              "operation": "startsWith",
+              "value2": "/buscar"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "/crear"
+            }
+          ]
+        }
+      },
+      "name": "Switch Commands",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "MODULO_01_HUNTER_ID",
+        "mode": "wait"
+      },
+      "name": "Execute Trend Hunter",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        700,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "MODULO_02_CREATIVE_ID",
+        "mode": "wait"
+      },
+      "name": "Execute Creative Studio",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        700,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch Commands",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Commands": {
+      "main": [
+        [
+          {
+            "node": "Execute Trend Hunter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute Creative Studio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true
+  }
+}

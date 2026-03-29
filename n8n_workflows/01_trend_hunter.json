@@ -1,0 +1,78 @@
+{
+  "name": "01_El_Cazador_TrendHunter",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/trending_scraper/runs",
+        "authentication": "headerAuth",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer APIFY_TOKEN_HERE"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Llamada a Apify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "setAllData": false,
+        "options": {},
+        "keepOnlySet": true
+      },
+      "name": "Filtrar JSON Limpio",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        650,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Llamada a Apify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llamada a Apify": {
+      "main": [
+        [
+          {
+            "node": "Filtrar JSON Limpio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}
