@@ -32,6 +32,17 @@
         500,
         300
       ]
+    },
+    {
+      "parameters": {},
+      "id": "output-02",
+      "name": "Devolver al Cerebro",
+      "type": "n8n-nodes-base.executeWorkflowOutput",
+      "typeVersion": 1,
+      "position": [
+        750,
+        300
+      ]
     }
   ],
   "connections": {
@@ -40,6 +51,17 @@
         [
           {
             "node": "Mock IA (Miguel)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mock IA (Miguel)": {
+      "main": [
+        [
+          {
+            "node": "Devolver al Cerebro",
             "type": "main",
             "index": 0
           }

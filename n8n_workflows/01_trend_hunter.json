@@ -84,6 +84,17 @@
         1140,
         300
       ]
+    },
+    {
+      "parameters": {},
+      "id": "output-01",
+      "name": "Devolver al Cerebro",
+      "type": "n8n-nodes-base.executeWorkflowOutput",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        300
+      ]
     }
   ],
   "connections": {
@@ -125,6 +136,17 @@
         [
           {
             "node": "Formatear Respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear Respuesta": {
+      "main": [
+        [
+          {
+            "node": "Devolver al Cerebro",
             "type": "main",
             "index": 0
           }
