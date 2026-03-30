@@ -7,10 +7,60 @@
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
-      "position": [
-        250,
-        300
-      ]
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "productUrl",
+              "value": "={{ $json.productUrl || 'Sin URL de producto (modo manual)' }}"
+            },
+            {
+              "name": "chatId",
+              "value": "={{ $json.chatId || '' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prep-datos",
+      "name": "Preparar Datos Entrada",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 2048, messages: [{ role: 'user', content: 'Eres experto en contenido viral de TikTok para dropshipping.\\n\\nProducto: ' + $json.productUrl + '\\n\\nGenera 5 guiones virales numerados:\\n1. POV del comprador\\n2. Problema/Solucion dramatico\\n3. Por que no sabias que necesitabas esto\\n4. Comparativa precio vs valor\\n5. Antes/Despues\\n\\nCada guion: gancho en 3 segundos entre asteriscos, 15-30 segundos, CTA final. Solo los guiones en Markdown.' }] }) }}",
+        "options": {}
+      },
+      "id": "llamar-claude",
+      "name": "Llamar a Claude (Anthropic)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [700, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "BUEEJEPalWKrWy2Q",
+          "name": "Anthropic API Key"
+        }
+      }
     },
     {
       "parameters": {
@@ -19,53 +69,33 @@
           "string": [
             {
               "name": "respuesta_texto",
-              "value": "🧠 *PROMPT GUARDADO POR MIGUEL PARA LA IA:*\n\nActúa como un experto en contenido orgánico de TikTok para el nicho de Joyería y Oro. Genera 5 guiones virales para este producto: 1 POV, 1 Problema/Solución extremo, 1 'Por qué no sabías que necesitabas esto', y 2 comparativas. Aplica ganchos agresivos en los primeros 3 segundos.\n\n_(Nota del Agente: Este es un Mock validado para n8n. Para que sea IA real, se necesita añadir el nodo Anthropic con la API Key en AWS)_"
+              "value": "=🧠 *5 GUIONES VIRALES GENERADOS* 🧠\n\n{{ $json.content[0].text }}"
             }
           ]
         },
         "options": {}
       },
-      "name": "Mock IA (Miguel)",
+      "id": "format-guiones",
+      "name": "Formatear Guiones",
       "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        500,
-        300
-      ]
-    },
-    {
-      "parameters": {},
-      "id": "output-02",
-      "name": "Devolver al Cerebro",
-      "type": "n8n-nodes-base.executeWorkflowOutput",
-      "typeVersion": 1,
-      "position": [
-        750,
-        300
-      ]
+      "typeVersion": 2,
+      "position": [920, 300]
     }
   ],
   "connections": {
     "Execute Workflow Trigger": {
       "main": [
-        [
-          {
-            "node": "Mock IA (Miguel)",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Preparar Datos Entrada", "type": "main", "index": 0 }]
       ]
     },
-    "Mock IA (Miguel)": {
+    "Preparar Datos Entrada": {
       "main": [
-        [
-          {
-            "node": "Devolver al Cerebro",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Llamar a Claude (Anthropic)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Llamar a Claude (Anthropic)": {
+      "main": [
+        [{ "node": "Formatear Guiones", "type": "main", "index": 0 }]
       ]
     }
   },

@@ -4,7 +4,8 @@
     {
       "parameters": {
         "updates": [
-          "message"
+          "message",
+          "callback_query"
         ],
         "additionalFields": {}
       },
@@ -12,129 +13,296 @@
       "name": "Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1,
-      "position": [
-        240,
-        300
-      ]
+      "position": [240, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "Fw9W77lyRXd9Oasi",
+          "name": "Telegram account"
+        }
+      }
     },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-callback",
+              "leftValue": "={{ !!$json.callback_query }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-tipo",
+      "name": "Es Callback Query?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst cbq = data.callback_query;\nconst text = cbq.message.text;\nconst urlMatch = text.match(/https?:\\/\\/[^\\s]+/);\nreturn [{ json: {\n  productUrl: urlMatch ? urlMatch[0] : '',\n  callbackQueryId: cbq.id,\n  chatId: cbq.message.chat.id\n} }];"
+      },
+      "id": "code-extract-url",
+      "name": "Extraer URL del Producto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 140]
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "operation": "answerQuery",
+        "queryId": "={{ $('Extraer URL del Producto').first().json.callbackQueryId }}",
+        "additionalFields": {
+          "text": "⏳ Generando guiones..."
+        }
+      },
+      "id": "ack-callback",
+      "name": "Confirmar Callback",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [900, 140],
+      "credentials": {
+        "telegramApi": {
+          "id": "Fw9W77lyRXd9Oasi",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            { "name": "productUrl", "value": "={{ $('Extraer URL del Producto').first().json.productUrl }}" },
+            { "name": "chatId",     "value": "={{ $('Extraer URL del Producto').first().json.chatId }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prep-aprobacion",
+      "name": "Preparar Datos Aprobacion",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [1120, 140]
+    },
+    {
+      "parameters": {
+        "workflowId": "WbsFLkvD68ZzcpoI",
+        "mode": "wait"
+      },
+      "id": "exec-studio-aprobacion",
+      "name": "Execute Studio (Aprobacion)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1340, 140]
+    },
+
     {
       "parameters": {
         "dataType": "string",
-        "value1": "={{$json.message.text}}",
+        "value1": "={{ $json.message.text }}",
         "rules": {
           "rules": [
-            {
-              "operation": "startsWith",
-              "value2": "/buscar"
-            },
-            {
-              "operation": "startsWith",
-              "value2": "/crear"
-            }
+            { "operation": "startsWith", "value2": "/buscar" },
+            { "operation": "startsWith", "value2": "/crear" }
           ]
-        }
+        },
+        "fallbackOutput": 2
       },
+      "id": "switch-commands",
       "name": "Switch Commands",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
-      "position": [
-        460,
-        300
-      ]
+      "position": [680, 420]
     },
     {
       "parameters": {
-        "workflowId": "lWW470CURDI9x59r",
+        "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
+        "text": "🔍 Buscando el top viral del día... dame un momento.",
+        "additionalFields": {}
+      },
+      "id": "ack-buscar",
+      "name": "Buscando... (ack)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [900, 320],
+      "credentials": {
+        "telegramApi": {
+          "id": "Fw9W77lyRXd9Oasi",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": "5uOnCYRsOH8YzCkf",
         "mode": "wait"
       },
+      "id": "exec-hunter",
       "name": "Execute Trend Hunter",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
-      "position": [
-        700,
-        200
-      ]
-    },
-    {
-      "parameters": {
-        "workflowId": "o8SzwLp65EJLHbTk",
-        "mode": "wait"
-      },
-      "name": "Execute Creative Studio",
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1,
-      "position": [
-        700,
-        400
-      ]
+      "position": [1120, 320]
     },
     {
       "parameters": {
         "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
         "text": "={{ $json.respuesta_texto }}",
         "additionalFields": {
+          "parse_mode": "Markdown",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "✅ Aprobar Producto",
+                      "additionalFields": {
+                        "callback_data": "APPROVE"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "id": "enviar-con-boton",
+      "name": "Enviar Producto con Botón",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1340, 320],
+      "credentials": {
+        "telegramApi": {
+          "id": "Fw9W77lyRXd9Oasi",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": "WbsFLkvD68ZzcpoI",
+        "mode": "wait"
+      },
+      "id": "exec-studio-manual",
+      "name": "Execute Studio (Manual)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [900, 460]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "respuesta_texto",
+              "value": "❓ Comando no reconocido.\n\nUsa:\n• /buscar — Encuentra el producto viral del día\n• /crear — Genera guiones de TikTok"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fallback-set",
+      "name": "Fallback Comando",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [900, 580]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').first().json.message ? $('Telegram Trigger').first().json.message.chat.id : $('Telegram Trigger').first().json.callback_query.message.chat.id }}",
+        "text": "={{ $json.respuesta_texto }}",
+        "additionalFields": {
           "parse_mode": "Markdown"
         }
       },
+      "id": "responder",
       "name": "Responder a Telegram",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1,
-      "position": [
-        1000,
-        300
-      ]
+      "position": [1560, 420],
+      "credentials": {
+        "telegramApi": {
+          "id": "Fw9W77lyRXd9Oasi",
+          "name": "Telegram account"
+        }
+      }
     }
   ],
   "connections": {
     "Telegram Trigger": {
       "main": [
-        [
-          {
-            "node": "Switch Commands",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Es Callback Query?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Es Callback Query?": {
+      "main": [
+        [{ "node": "Extraer URL del Producto", "type": "main", "index": 0 }],
+        [{ "node": "Switch Commands",          "type": "main", "index": 0 }]
+      ]
+    },
+    "Extraer URL del Producto": {
+      "main": [
+        [{ "node": "Confirmar Callback", "type": "main", "index": 0 }]
+      ]
+    },
+    "Confirmar Callback": {
+      "main": [
+        [{ "node": "Preparar Datos Aprobacion", "type": "main", "index": 0 }]
+      ]
+    },
+    "Preparar Datos Aprobacion": {
+      "main": [
+        [{ "node": "Execute Studio (Aprobacion)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Execute Studio (Aprobacion)": {
+      "main": [
+        [{ "node": "Responder a Telegram", "type": "main", "index": 0 }]
       ]
     },
     "Switch Commands": {
       "main": [
-        [
-          {
-            "node": "Execute Trend Hunter",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Execute Creative Studio",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Buscando... (ack)",       "type": "main", "index": 0 }],
+        [{ "node": "Execute Studio (Manual)", "type": "main", "index": 0 }],
+        [{ "node": "Fallback Comando",        "type": "main", "index": 0 }]
+      ]
+    },
+    "Buscando... (ack)": {
+      "main": [
+        [{ "node": "Execute Trend Hunter", "type": "main", "index": 0 }]
       ]
     },
     "Execute Trend Hunter": {
       "main": [
-        [
-          {
-            "node": "Responder a Telegram",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Enviar Producto con Botón", "type": "main", "index": 0 }]
       ]
     },
-    "Execute Creative Studio": {
+    "Execute Studio (Manual)": {
       "main": [
-        [
-          {
-            "node": "Responder a Telegram",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Responder a Telegram", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fallback Comando": {
+      "main": [
+        [{ "node": "Responder a Telegram", "type": "main", "index": 0 }]
       ]
     }
   },

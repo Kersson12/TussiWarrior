@@ -7,62 +7,45 @@
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
-      "position": [
-        250,
-        300
-      ]
+      "position": [250, 300]
     },
     {
       "parameters": {
-        "url": "https://api.apify.com/v2/acts/clockworks~tiktok-scraper/runs?waitForFinish=120&token=REPLACE_WITH_APIFY_TOKEN",
         "method": "POST",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
+        "url": "https://api.apify.com/v2/acts/clockworks~tiktok-scraper/runs?waitForFinish=300&token={{APIFY_API_TOKEN}}",
+        "sendHeaders": false,
         "sendBody": true,
-        "contentType": "raw",
-        "rawBody": "{\n  \"hashtags\": [\n    \"tiktokmademebuyit\"\n  ],\n  \"resultsPerPage\": 5,\n  \"shouldDownloadVideos\": false\n}",
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "{\"searchQueries\": [\"tiktokmademebuyit\", \"aliexpressfinds\", \"amazonfinds\"], \"searchSection\": \"/video\", \"searchSorting\": \"0\", \"searchDatePosted\": \"3\", \"resultsPerPage\": 15, \"scrapeRelatedVideos\": false, \"shouldDownloadVideos\": false, \"shouldDownloadCovers\": false, \"shouldDownloadSlideshowImages\": false, \"shouldDownloadAvatars\": false, \"shouldDownloadMusicCovers\": false, \"downloadSubtitlesOptions\": \"NEVER_DOWNLOAD_SUBTITLES\"}",
         "options": {}
       },
+      "id": "apify-run",
       "name": "Scrapear TikTok (Apify)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [
-        480,
-        300
-      ]
+      "position": [480, 300]
     },
     {
       "parameters": {
-        "url": "=https://api.apify.com/v2/datasets/{{$json.data.defaultDatasetId}}/items?format=json&clean=1",
+        "url": "={{ 'https://api.apify.com/v2/datasets/' + $json.data.defaultDatasetId + '/items?format=json&clean=1&token={{APIFY_API_TOKEN}}' }}",
         "options": {}
       },
-      "name": "Obtener Resultados JSON",
+      "id": "apify-results",
+      "name": "Obtener Resultados",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [
-        700,
-        300
-      ]
+      "position": [700, 300]
     },
     {
       "parameters": {
-        "operation": "limit",
-        "maxItems": 1
+        "jsCode": "const raw = $input.first().json;\nconst arr = Array.isArray(raw) ? raw : (raw.items || raw.data || [raw]);\n\nif (!arr || arr.length === 0) {\n  return [{ json: { respuesta_texto: '⚠️ No se encontraron videos recientes. Intenta más tarde.', producto_url: '' } }];\n}\n\n// Filtro de contenido: excluir videos que hablan del negocio en vez de mostrar un producto\nconst excluir = ['dropshipping', 'dropship', 'wholesale', 'reseller', 'ecommerce', 'how to sell', 'como vender', 'negocio online', 'make money', 'ganar dinero', 'shopify tutorial', 'print on demand', 'curso', 'mentoria'];\n\n// Filtro de fecha: últimas 2 semanas (respaldo por si searchDatePosted no filtra todo)\nconst dosSemanas = Date.now() / 1000 - 14 * 24 * 60 * 60;\n\nconst filtrados = arr.filter(v => {\n  if ((v.createTime || 0) < dosSemanas) return false;\n  const todoTexto = ((v.text || '') + ' ' + (v.hashtags || []).map(h => h.name || h).join(' ')).toLowerCase();\n  if (excluir.some(p => todoTexto.includes(p))) return false;\n  return true;\n});\n\nif (filtrados.length === 0) {\n  return [{ json: { respuesta_texto: '⚠️ No encontré productos virales recientes (últimas 2 semanas). Prueba mañana.', producto_url: '' } }];\n}\n\nfiltrados.sort((a, b) => (b.playCount || 0) - (a.playCount || 0));\nconst top = filtrados[0];\n\nconst autor = top.authorMeta?.name || top.authorMeta?.nickName || 'N/D';\nconst url = top.webVideoUrl || '';\nconst fecha = top.createTimeISO ? top.createTimeISO.slice(0, 10) : 'N/D';\n\nreturn [{ json: {\n  respuesta_texto: `🔥 *TOP VIRAL ENCONTRADO* 🔥\\n\\n📺 *Vistas:* ${top.playCount || 'N/D'}\\n❤️ *Likes:* ${top.diggCount || 'N/D'}\\n📤 *Compartidos:* ${top.shareCount || 'N/D'}\\n🔖 *Guardados:* ${top.collectCount || 'N/D'}\\n📅 *Fecha:* ${fecha}\\n👤 *Autor:* @${autor}\\n🔗 *Link TikTok:* ${url || 'No disponible'}\\n\\n_¿Lo aprobamos?_ 👇`,\n  producto_url: url\n} }];"
       },
-      "name": "Extraer Solo el Mejor",
-      "type": "n8n-nodes-base.itemLists",
-      "typeVersion": 3,
-      "position": [
-        920,
-        300
-      ]
+      "id": "sort-and-pick",
+      "name": "Ordenar y Extraer Top",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 300]
     },
     {
       "parameters": {
@@ -71,86 +54,42 @@
           "string": [
             {
               "name": "respuesta_texto",
-              "value": "=🔥 *TOP VIRAL ENCONTRADO* 🔥\n\n📺 *Vistas:* {{ $json.playCount || 'No disponible' }}\n❤️ *Likes:* {{ $json.diggCount || 'No disponible' }}\n🔗 *Link:* {{ $json.webVideoUrl || 'No disponible' }}"
+              "value": "={{ $json.respuesta_texto }}"
+            },
+            {
+              "name": "producto_url",
+              "value": "={{ $json.producto_url }}"
             }
           ]
         },
         "options": {}
       },
+      "id": "format-response",
       "name": "Formatear Respuesta",
       "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        1140,
-        300
-      ]
-    },
-    {
-      "parameters": {},
-      "id": "output-01",
-      "name": "Devolver al Cerebro",
-      "type": "n8n-nodes-base.executeWorkflowOutput",
-      "typeVersion": 1,
-      "position": [
-        1360,
-        300
-      ]
+      "typeVersion": 2,
+      "position": [1140, 300]
     }
   ],
   "connections": {
     "Execute Workflow Trigger": {
       "main": [
-        [
-          {
-            "node": "Scrapear TikTok (Apify)",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Scrapear TikTok (Apify)", "type": "main", "index": 0 }]
       ]
     },
     "Scrapear TikTok (Apify)": {
       "main": [
-        [
-          {
-            "node": "Obtener Resultados JSON",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Obtener Resultados", "type": "main", "index": 0 }]
       ]
     },
-    "Obtener Resultados JSON": {
+    "Obtener Resultados": {
       "main": [
-        [
-          {
-            "node": "Extraer Solo el Mejor",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Ordenar y Extraer Top", "type": "main", "index": 0 }]
       ]
     },
-    "Extraer Solo el Mejor": {
+    "Ordenar y Extraer Top": {
       "main": [
-        [
-          {
-            "node": "Formatear Respuesta",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Formatear Respuesta": {
-      "main": [
-        [
-          {
-            "node": "Devolver al Cerebro",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Formatear Respuesta", "type": "main", "index": 0 }]
       ]
     }
   },
