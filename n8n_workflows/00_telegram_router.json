@@ -70,7 +70,7 @@
     },
     {
       "parameters": {
-        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
         "text": "={{ $json.respuesta_texto }}",
         "additionalFields": {
           "parse_mode": "Markdown"
